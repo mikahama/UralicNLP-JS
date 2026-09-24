@@ -2,7 +2,7 @@
 
 JavaScript implementation of the [UralicNLP](https://github.com/mikahama/uralicNLP) NLP library for Uralic languages (Finnish, Komi-Zyrian, Erzya, Moksha, Sami, etc.) and others.
 
-Runs universally on **Server (Node.js)** and **Client (modern Web Browsers & Web Workers)** using [**hfst-js**](https://www.npmjs.com/package/hfst-js) for pure JavaScript HFST optimized-lookup transducer operations without binary dependencies.
+Runs universally on **Server (Node.js)** and **Client (modern Web Browsers & Web Workers)** using Dr Jack Rueter's [**hfst-js**](https://www.npmjs.com/package/hfst-js) for pure JavaScript HFST optimized-lookup transducer operations without binary dependencies.
 
 ---
 
