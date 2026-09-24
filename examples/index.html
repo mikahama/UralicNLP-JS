@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UralicNLP-JS Browser Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      line-height: 1.5;
+      color: #333;
+    }
+    h1, h2 { color: #1e3a8a; }
+    .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      background: #fafafa;
+    }
+    textarea, input, select, button {
+      font-size: 14px;
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      margin-top: 6px;
+    }
+    textarea { width: 100%; box-sizing: border-box; }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button:hover { background: #1d4ed8; }
+    pre {
+      background: #111827;
+      color: #f3f4f6;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+    }
+  </style>
+  <!-- Non-node client-side single JS script tag: -->
+  <script src="../dist/uralicnlp.min.js"></script>
+</head>
+<body>
+  <h1>UralicNLP JavaScript Client Demo</h1>
+  <p>Standalone browser implementation powered by <code>hfst-js</code> and <code>IndexedDB</code>.</p>
+
+  <!-- 1. Tokenizer Demo -->
+  <div class="card">
+    <h2>1. Tokenizer (Runs synchronously, 0 network requests)</h2>
+    <textarea id="tokenText" rows="3">Tämä on ensimmäinen lause. Esim. tämä on toinen lause! Onko tämä kolmas? 1.5 litraa maitoa...</textarea>
+    <div style="margin-top: 10px;">
+      <button onclick="runTokenizer()">Tokenize</button>
+    </div>
+    <pre id="tokenOutput">// Click "Tokenize" to see sentences and words</pre>
+  </div>
+
+  <!-- 2. Morphology Demo -->
+  <div class="card">
+    <h2>2. Morphology (lemmatize, analyze, generate, segment)</h2>
+    <p>Models are stored locally in the browser's <strong>IndexedDB</strong>.</p>
+    <div>
+      <label>Language code:</label>
+      <input type="text" id="langInput" value="kpv" style="width: 80px;">
+      <label style="margin-left: 15px;">Word / Query:</label>
+      <input type="text" id="queryInput" value="лыддьыны" style="width: 200px;">
+      <button onclick="downloadLang()">Download Model</button>
+    </div>
+    <div style="margin-top: 12px;">
+      <button onclick="runAnalyze()">analyze()</button>
+      <button onclick="runLemmatize()">lemmatize()</button>
+      <button onclick="runGenerate()">generate()</button>
+      <button onclick="runSegment()">segment()</button>
+    </div>
+    <pre id="morphOutput">// Select an action above</pre>
+  </div>
+
+  <script>
+    function runTokenizer() {
+      const text = document.getElementById('tokenText').value;
+      const sents = uralicNLP.tokenizer.sentences(text);
+      const toks = uralicNLP.tokenizer.tokenize(text);
+      document.getElementById('tokenOutput').textContent = JSON.stringify({
+        sentences: sents,
+        tokensBySentence: toks
+      }, null, 2);
+    }
+
+    async function downloadLang() {
+      const lang = document.getElementById('langInput').value.trim();
+      const out = document.getElementById('morphOutput');
+      out.textContent = `Downloading models for ${lang} into IndexedDB...`;
+      try {
+        await uralicNLP.download(lang, {
+          onProgress: (p) => {
+            out.textContent += `\nDownloaded ${p.model}`;
+          }
+        });
+        out.textContent += `\nDone! Models for ${lang} are stored in IndexedDB.`;
+      } catch (err) {
+        out.textContent = `Error: ${err.message}`;
+      }
+    }
+
+    async function runAnalyze() {
+      const lang = document.getElementById('langInput').value.trim();
+      const q = document.getElementById('queryInput').value.trim();
+      const out = document.getElementById('morphOutput');
+      out.textContent = `Analyzing "${q}" (${lang})...`;
+      try {
+        const res = await uralicNLP.analyze(q, lang);
+        out.textContent = JSON.stringify(res, null, 2);
+      } catch (err) {
+        out.textContent = `Error: ${err.message}`;
+      }
+    }
+
+    async function runLemmatize() {
+      const lang = document.getElementById('langInput').value.trim();
+      const q = document.getElementById('queryInput').value.trim();
+      const out = document.getElementById('morphOutput');
+      out.textContent = `Lemmatizing "${q}" (${lang})...`;
+      try {
+        const res = await uralicNLP.lemmatize(q, lang);
+        out.textContent = JSON.stringify(res, null, 2);
+      } catch (err) {
+        out.textContent = `Error: ${err.message}`;
+      }
+    }
+
+    async function runGenerate() {
+      const lang = document.getElementById('langInput').value.trim();
+      const q = document.getElementById('queryInput').value.trim();
+      const query = q.includes('+') ? q : q + '+V+Ind+Prs+Sg1';
+      const out = document.getElementById('morphOutput');
+      out.textContent = `Generating "${query}" (${lang})...`;
+      try {
+        const res = await uralicNLP.generate(query, lang);
+        out.textContent = JSON.stringify(res, null, 2);
+      } catch (err) {
+        out.textContent = `Error: ${err.message}`;
+      }
+    }
+
+    async function runSegment() {
+      const lang = document.getElementById('langInput').value.trim();
+      const q = document.getElementById('queryInput').value.trim();
+      const out = document.getElementById('morphOutput');
+      out.textContent = `Segmenting "${q}" (${lang})...`;
+      try {
+        const res = await uralicNLP.segment(q, lang);
+        out.textContent = JSON.stringify(res, null, 2);
+      } catch (err) {
+        out.textContent = `Error: ${err.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

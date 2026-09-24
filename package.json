@@ -1,0 +1,49 @@
+{
+  "name": "uralicnlp",
+  "version": "1.0.0",
+  "description": "JavaScript implementation of UralicNLP for server (Node.js) and browser",
+  "type": "module",
+  "main": "./dist/uralicnlp.cjs",
+  "module": "./dist/uralicnlp.esm.js",
+  "browser": "./dist/uralicnlp.min.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "browser": "./dist/uralicnlp.min.js",
+      "import": "./dist/uralicnlp.esm.js",
+      "require": "./dist/uralicnlp.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "node --test test/*.test.js",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "uralicnlp",
+    "nlp",
+    "hfst",
+    "morphology",
+    "uralic",
+    "lemmatize",
+    "tokenizer",
+    "finnish",
+    "komi",
+    "mordvin"
+  ],
+  "license": "Apache-2.0",
+  "dependencies": {
+    "hfst-js": "^1.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "fake-indexeddb": "^6.2.5"
+  }
+}
