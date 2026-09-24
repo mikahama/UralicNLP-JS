@@ -24,6 +24,8 @@
   "scripts": {
     "build": "node scripts/build.js",
     "test": "node --test test/*.test.js",
+    "start": "node server.js",
+    "gui": "node server.js",
     "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [

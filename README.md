@@ -38,6 +38,24 @@ This registers `window.uralicNLP` globally with zero dependencies.
 
 ---
 
+## Interactive Testing GUI
+
+To test all methods interactively in your browser with support for both **Server (Node.js)** and **Client (IndexedDB)** execution:
+
+```bash
+npm start
+# or: npm run gui
+```
+
+Open `http://localhost:3000` in your web browser. The GUI provides:
+- A runtime switcher between **Node.js Server** and **Client Browser**.
+- Interactive forms for `lemmatize`, `analyze`, `generate`, and `segment`.
+- Translation lookup tool for `get_translation`.
+- Sentence splitter and token visualizer for `tokenizer`.
+- Model manager to download, check status, and inspect storage.
+
+---
+
 ## Quick Start
 
 ### Node.js (ES Modules)

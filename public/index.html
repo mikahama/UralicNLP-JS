@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UralicNLP-JS Testing GUI</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Standalone browser bundle for client-side execution -->
+  <script src="/uralicnlp.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">🌐</span>
+          <div>
+            <h1>UralicNLP-JS</h1>
+            <p class="subtitle">Universal NLP for Uralic languages (Node.js &amp; Browser)</p>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="runtime-selector">
+          <span class="runtime-label">Execution Target:</span>
+          <div class="toggle-group">
+            <button id="btnRuntimeServer" class="toggle-btn active" onclick="setRuntime('server')">
+              <span class="dot server-dot"></span> Node.js Server
+            </button>
+            <button id="btnRuntimeClient" class="toggle-btn" onclick="setRuntime('client')">
+              <span class="dot client-dot"></span> Browser (IndexedDB)
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="runtime-banner" id="runtimeBanner">
+      <strong>Active Mode:</strong> <span id="bannerText">Node.js Server — executing via local Node API and filesystem storage (~/.uralicnlp)</span>
+    </div>
+
+    <!-- Quick Presets -->
+    <div class="presets-bar">
+      <span class="preset-label">Quick Presets:</span>
+      <button class="chip" onclick="loadPreset('kpv-verb')">Komi (kpv) - Verb: лыддьыны</button>
+      <button class="chip" onclick="loadPreset('kpv-gen')">Komi (kpv) - Generate: лыддьыны+V+Ind+Prs+Sg1</button>
+      <button class="chip" onclick="loadPreset('myv-verb')">Erzya (myv) - Verb: морамс</button>
+      <button class="chip" onclick="loadPreset('fin-tok')">Finnish (fin) - Tokenizer</button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('morphology')">Morphology</button>
+      <button class="tab-btn" onclick="switchTab('translation')">Translation</button>
+      <button class="tab-btn" onclick="switchTab('tokenizer')">Tokenizer</button>
+      <button class="tab-btn" onclick="switchTab('models')">Models &amp; Storage</button>
+    </nav>
+
+    <!-- Tab 1: Morphology -->
+    <section id="tab-morphology" class="tab-content active">
+      <div class="grid-2col">
+        <div class="card">
+          <h2>Input &amp; Configuration</h2>
+          <div class="form-group">
+            <label for="morphLang">Language Code:</label>
+            <input type="text" id="morphLang" value="kpv" placeholder="e.g. kpv, mdf, myv, fin, sme">
+          </div>
+          <div class="form-group">
+            <label for="morphQuery">Wordform or Analysis Tag:</label>
+            <input type="text" id="morphQuery" value="лыддьыны" placeholder="e.g. лыддьыны or word+tag+tag">
+          </div>
+
+          <div class="options-box">
+            <h3>Options</h3>
+            <label class="checkbox-label">
+              <input type="checkbox" id="optDescriptive" checked> Descriptive analyzer/generator
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="optRemoveSymbols" checked> Remove internal symbols (@...@)
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="optWordBoundaries"> Word boundaries for lemmatize (<code>|</code>)
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="optDictForms"> Dictionary forms
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="optLangFlags"> Language flags on analyze
+            </label>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn btn-primary" onclick="executeMethod('lemmatize')">lemmatize()</button>
+            <button class="btn btn-primary" onclick="executeMethod('analyze')">analyze()</button>
+            <button class="btn btn-secondary" onclick="executeMethod('generate')">generate()</button>
+            <button class="btn btn-secondary" onclick="executeMethod('segment')">segment()</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Result</h2>
+            <div id="morphMeta" class="meta-tag">Idle</div>
+          </div>
+          <div id="morphOutput" class="result-box">
+            <p class="placeholder-text">Click an action button to inspect results.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Translation -->
+    <section id="tab-translation" class="tab-content">
+      <div class="grid-2col">
+        <div class="card">
+          <h2>Dictionary Translation</h2>
+          <p class="card-desc">Translates lemmas using dictionary transducers.</p>
+          <div class="form-group">
+            <label for="transLemma">Lemma:</label>
+            <input type="text" id="transLemma" value="лыддьыны">
+          </div>
+          <div class="form-group">
+            <label for="transSrcLang">Source Language:</label>
+            <input type="text" id="transSrcLang" value="kpv">
+          </div>
+          <div class="form-group">
+            <label for="transTgtLang">Target Language (Optional):</label>
+            <input type="text" id="transTgtLang" placeholder="e.g. fin, eng, rus (empty for all)">
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn btn-primary" onclick="executeTranslation()">get_translation()</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Translations</h2>
+            <div id="transMeta" class="meta-tag">Idle</div>
+          </div>
+          <div id="transOutput" class="result-box">
+            <p class="placeholder-text">Click get_translation() to retrieve dictionary translations.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Tokenizer -->
+    <section id="tab-tokenizer" class="tab-content">
+      <div class="card">
+        <h2>Tokenizer Testing</h2>
+        <p class="card-desc">Rule-based sentence splitting and tokenization with abbreviation preservation (runs synchronously, 0 network requests).</p>
+        <div class="form-group">
+          <label for="tokenText">Input Text:</label>
+          <textarea id="tokenText" rows="4">Tämä on ensimmäinen lause. Esim. tämä on toinen lause! Onko tämä kolmas? Ostin 1.5 litraa maitoa... Se maksoi 2.50€.</textarea>
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-primary" onclick="executeTokenize('sentences')">tokenizer.sentences()</button>
+          <button class="btn btn-primary" onclick="executeTokenize('words')">tokenizer.words()</button>
+          <button class="btn btn-accent" onclick="executeTokenize('tokenize')">tokenizer.tokenize() (Full)</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 20px;">
+        <div class="card-header">
+          <h2>Tokenized Output</h2>
+          <div id="tokenMeta" class="meta-tag">Idle</div>
+        </div>
+        <div id="tokenOutput" class="result-box">
+          <p class="placeholder-text">Click a tokenization button above to view results.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Models & Storage -->
+    <section id="tab-models" class="tab-content">
+      <div class="grid-2col">
+        <div class="card">
+          <h2>Download &amp; Manage Models</h2>
+          <div class="form-group">
+            <label for="dlLang">Language Code:</label>
+            <input type="text" id="dlLang" value="kpv" placeholder="e.g. kpv, fin, mdf, myv">
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-primary" onclick="downloadLanguage()">Download Models</button>
+            <button class="btn btn-secondary" onclick="checkInstalled()">Check Status</button>
+            <button class="btn btn-danger" onclick="uninstallLanguage()">Uninstall</button>
+          </div>
+
+          <div id="dlProgress" class="progress-box" style="display:none;">
+            <div class="spinner"></div>
+            <span id="dlStatusText">Downloading...</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>Storage Status</h2>
+            <button class="btn btn-sm" onclick="refreshStorageInfo()">Refresh</button>
+          </div>
+          <div id="storageInfo" class="result-box">
+            <p class="placeholder-text">Loading storage info...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>UralicNLP-JS &bull; Powered by <a href="https://www.npmjs.com/package/hfst-js" target="_blank">hfst-js</a> &bull; Apache-2.0 License</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
