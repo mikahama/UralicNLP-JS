@@ -1,6 +1,6 @@
 {
   "name": "uralicnlp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "JavaScript implementation of UralicNLP for server (Node.js) and browser",
   "type": "module",
   "main": "./dist/uralicnlp.cjs",
