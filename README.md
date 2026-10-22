@@ -26,7 +26,7 @@ Runs universally on **Server (Node.js)** and **Client (modern Web Browsers & Web
 npm install uralicnlp
 ```
 
-### 2. Standalone Browser Script (Non-Node Projects)
+### 2.1 Standalone Browser Script (Non-Node Projects)
 
 For client-side projects without Node.js or bundlers, include the single minified bundle:
 
@@ -35,6 +35,12 @@ For client-side projects without Node.js or bundlers, include the single minifie
 ```
 
 This registers `window.uralicNLP` globally with zero dependencies.
+
+### 2.2 Standalone Browser Script CDN
+
+```html
+ <script src="https://cdn.jsdelivr.net/npm/uralicnlp@1.0.0/dist/uralicnlp.min.js"></script>
+```
 
 ---
 
