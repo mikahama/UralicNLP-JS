@@ -509,13 +509,25 @@ export async function get_translation(
   }
 
   const query = `${lang}_${lemma}`;
-  const [t1, t2] = await Promise.all([
+  const [t1, t2, t3] = await Promise.all([
     analyze(query, 'dictionary', { filename: opts.filename1 }).catch(() => []),
     generate(query, 'dictionary', { filename: opts.filename2 }).catch(() => []),
+    // The normalized dictionary analyzer is a separate FST.  It is not
+    // available in every dictionary installation, so match the Python API's
+    // best-effort behavior when it cannot be loaded.
+    analyze(query, 'dictionary', {
+      filename: opts.filename1,
+      descriptive: false,
+    }).catch(() => {
+      console.warn(
+        'Not all dictionaries are loaded. Please download the dictionary models and try again.'
+      );
+      return [];
+    }),
   ]);
 
   const res = {};
-  for (const t of [...t1, ...t2]) {
+  for (const t of [...t1, ...t2, ...t3]) {
     if (!t || !t[0]) continue;
     const splitIdx = t[0].indexOf('_');
     if (splitIdx === -1) continue;
