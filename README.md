@@ -39,7 +39,7 @@ This registers `window.uralicNLP` globally with zero dependencies.
 ### 2.2 Standalone Browser Script CDN
 
 ```html
- <script src="https://cdn.jsdelivr.net/npm/uralicnlp@1.0.0/dist/uralicnlp.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/uralicnlp@1.0.1/dist/uralicnlp.min.js"></script>
 ```
 
 ---
