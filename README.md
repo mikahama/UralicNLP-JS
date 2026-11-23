@@ -10,6 +10,8 @@ Runs universally on **Server (Node.js)** and **Client (modern Web Browsers & Web
 
 - **Universal Support**: Works seamlessly in **Node.js** (CommonJS & ESM) and in **Web Browsers** via modern bundlers or a single `<script>` tag.
 - **Pure JavaScript HFST**: Uses `hfst-js` for fast transducer execution.
+- **CG3 Disambiguation**: Uses `@rueter/jscg3` to apply each language's
+  `disambiguator.cg3` grammar in Node.js and browsers.
 - **Server vs Client Model Storage**:
   - **Server (Node.js)**: Stores language models on disk (following Python UralicNLP logic: checks package models, `~/.uralicnlp`, and custom folders).
   - **Client (Browser)**: Stores binary language models persistently in the browser's **IndexedDB**, eliminating repeated downloads and bypassing localStorage size limits.
@@ -39,7 +41,7 @@ This registers `window.uralicNLP` globally with zero dependencies.
 ### 2.2 Standalone Browser Script CDN
 
 ```html
- <script src="https://cdn.jsdelivr.net/npm/uralicnlp@1.0.1/dist/uralicnlp.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/uralicnlp@1.0.2/dist/uralicnlp.min.js"></script>
 ```
 
 ---
@@ -55,6 +57,7 @@ import {
   generate,
   segment,
   get_translation,
+  Cg3,
   tokenizer,
 } from 'uralicnlp';
 
@@ -86,6 +89,11 @@ console.log(forms);
 const morphemes = await segment('лыддьыны', 'kpv');
 console.log(morphemes);
 // [['лыддьы', 'ны'], ['лыддьы', 'ны']]
+
+// 6. Constraint Grammar disambiguation
+const cg = new Cg3('fin');
+const disambiguated = await cg.disambiguate(['Kissa', 'voi', 'nauraa', '.']);
+// [['Kissa', [CgWord, ...]], ...]
 ```
 
 ### Node.js (CommonJS)
@@ -191,6 +199,20 @@ Looks up translations for a lemma from the dictionary transducers.
 - If `trans_lang` is specified (e.g. `'fin'`), returns `string[]` of translations.
 - If omitted, returns a mapping `{ [langCode]: string[] }`.
 
+#### `new Cg3(language, morphologyLanguages?)`
+Loads the language's `disambiguator.cg3` model and applies it with
+`@rueter/jscg3`. `disambiguate(words, options?)` returns pairs of the input
+word and its remaining `CgWord` readings. The grammar downloads on first use;
+download it ahead of time with `download(language, { models: ['cg3'] })`.
+
+When `morphologyLanguages` contains several language codes, analyses from all
+of them are considered for each word. Pass `options.morphologies` (one
+`Array<[analysis, weight]>` per word) to use precomputed analyses instead.
+
+#### `new Cg3Pipe(...cgs)`
+Runs `Cg3` instances sequentially, passing surviving analyses from each stage
+to the next, like a CG3 command-line pipeline.
+
 ---
 
 ### Model Management & Storage
@@ -202,6 +224,9 @@ Downloads language models from the model server (`http://models.uralicnlp.com/ni
 - `options.models`: list of specific model types to download (default: all HFST models).
 - `options.onProgress`: callback `({ language, model, status }) => void`.
 
+Downloading now evicts that language's in-memory transducers automatically, so
+the next analysis uses the newly saved model files.
+
 #### `is_language_installed(language: string): Promise<boolean>`
 Checks if models for the language are installed locally (on disk or in IndexedDB).
 
@@ -210,6 +235,21 @@ Queries the model server for the list of supported language codes.
 
 #### `uninstall(language: string): Promise<void>`
 Removes the language models from storage (disk or IndexedDB) and clears memory cache.
+
+#### `clearCache(language?): void`
+Removes loaded analyzer and generator objects from memory without deleting local
+model files. Pass a language code to clear only that language, or omit it to
+clear all loaded models. `clear_cache` is a snake-case alias.
+
+#### `deleteLanguage(language): Promise<void>`
+Permanently removes all local files/IndexedDB entries for one language and
+clears its in-memory models. This is an explicit alias for `uninstall`; use
+`delete_language` for the snake-case form. To force a clean replacement:
+
+```javascript
+await deleteLanguage('fin');
+await download('fin');
+```
 
 ---
 

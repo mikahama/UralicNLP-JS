@@ -70,6 +70,30 @@ export interface DownloadOptions {
   onProgress?: (progress: DownloadProgress) => void;
 }
 
+/** A reading that remains after CG3 disambiguation. */
+export interface CgReading {
+  form: string;
+  lemma: string;
+  morphology: string[];
+  tags: string[];
+  weight: number;
+  subReadings: CgReading[];
+  trace: string[];
+  analysis(): AnalysisResult;
+}
+
+export type CgDisambiguation = [string, CgReading[]];
+
+export interface Cg3Options {
+  descriptive?: boolean;
+  neuralFallback?: boolean;
+  neural_fallback?: boolean;
+  /** Precomputed analysis alternatives, one list for each input word. */
+  morphologies?: AnalysisResult[][];
+  /** Options passed directly to jscg3's CG input formatter. */
+  cgOptions?: { dropVariants?: boolean };
+}
+
 /**
  * Analyzes morphological forms for a word/query.
  */
@@ -167,6 +191,31 @@ export function download(
   options?: DownloadOptions
 ): Promise<void>;
 
+/** Constraint Grammar 3 disambiguator for one language. */
+export class Cg3 {
+  constructor(language: string, morphologyLanguages?: string[] | null);
+  language: string;
+  morphologyLanguages: string[];
+  path: string;
+  load(): Promise<any>;
+  disambiguate(
+    words: string[],
+    options?: Cg3Options | boolean
+  ): Promise<CgDisambiguation[]>;
+  analyze(words: string[], options?: Cg3Options): Promise<AnalysisResult[][]>;
+  toMorphologies(result: CgDisambiguation[]): AnalysisResult[][];
+}
+
+/** Sequentially applies several CG3 disambiguators. */
+export class Cg3Pipe {
+  constructor(...cgs: Cg3[]);
+  cgs: Cg3[];
+  disambiguate(
+    words: string[],
+    options?: Cg3Options | boolean
+  ): Promise<CgDisambiguation[]>;
+}
+
 /**
  * Retrieves supported languages list from server.
  */
@@ -174,9 +223,13 @@ export function supported_languages(): Promise<any>;
 export const supportedLanguages: typeof supported_languages;
 
 /**
- * Uninstalls language models.
+ * Uninstalls language models and removes their in-memory transducers.
  */
 export function uninstall(language: string): Promise<void>;
+/** Explicit alias for uninstall. */
+export const deleteLanguage: typeof uninstall;
+/** Python-style alias for uninstall. */
+export const delete_language: typeof uninstall;
 
 /**
  * Loads transducer from storage or filename, with caching.
@@ -188,9 +241,12 @@ export function get_transducer(
 export const getTransducer: typeof get_transducer;
 
 /**
- * Clears in-memory transducer caches.
+ * Clears in-memory transducer caches. Pass a language to evict only that
+ * language's analyzer and generator models.
  */
-export function clearCache(): void;
+export function clearCache(language?: string | null): void;
+/** Python-style alias for clearCache. */
+export const clear_cache: typeof clearCache;
 
 /**
  * Sets download server base URL.
@@ -245,9 +301,12 @@ export const uralicApi: {
   supported_languages: typeof supported_languages;
   supportedLanguages: typeof supportedLanguages;
   uninstall: typeof uninstall;
+  deleteLanguage: typeof deleteLanguage;
+  delete_language: typeof delete_language;
   get_transducer: typeof get_transducer;
   getTransducer: typeof getTransducer;
   clearCache: typeof clearCache;
+  clear_cache: typeof clear_cache;
   setDownloadServerUrl: typeof setDownloadServerUrl;
   getDownloadServerUrl: typeof getDownloadServerUrl;
   removeSymbols: typeof removeSymbols;
@@ -311,6 +370,8 @@ declare const uralicNLP: {
   get_translation: typeof get_translation;
   getTranslation: typeof getTranslation;
   tokenizer: typeof tokenizer;
+  Cg3: typeof Cg3;
+  Cg3Pipe: typeof Cg3Pipe;
   sentences: typeof sentences;
   words: typeof words;
   tokenize: typeof tokenize;
@@ -320,9 +381,12 @@ declare const uralicNLP: {
   supported_languages: typeof supported_languages;
   supportedLanguages: typeof supportedLanguages;
   uninstall: typeof uninstall;
+  deleteLanguage: typeof deleteLanguage;
+  delete_language: typeof delete_language;
   get_transducer: typeof get_transducer;
   getTransducer: typeof getTransducer;
   clearCache: typeof clearCache;
+  clear_cache: typeof clear_cache;
   setDownloadServerUrl: typeof setDownloadServerUrl;
   getDownloadServerUrl: typeof getDownloadServerUrl;
   removeSymbols: typeof removeSymbols;

@@ -13,6 +13,12 @@ import {
   removeAnalysisSymbols,
   addLanguageFlag,
   filterArabic,
+  clearCache,
+  clear_cache,
+  deleteLanguage,
+  delete_language,
+  MemoryStorage,
+  setStorage,
   uralicApi,
 } from '../src/index.js';
 
@@ -107,6 +113,18 @@ test('utility functions: removeSymbols, addLanguageFlag, filterArabic', () => {
   assert.strictEqual(filterArabic('كِتَابٌ', false), 'كتاب');
 });
 
+test('cache and deletion APIs provide explicit model refresh controls', async () => {
+  const storage = new MemoryStorage();
+  setStorage(storage);
+  await storage.saveModel('test', 'analyser', new Uint8Array([1, 2, 3]));
+
+  clearCache('test');
+  clear_cache();
+  assert.strictEqual(deleteLanguage, delete_language);
+  await deleteLanguage('test');
+  assert.strictEqual(await storage.getModel('test', 'analyser'), null);
+});
+
 test('uralicApi namespace has all required methods', () => {
   assert.strictEqual(typeof uralicApi.lemmatize, 'function');
   assert.strictEqual(typeof uralicApi.analyze, 'function');
@@ -115,4 +133,8 @@ test('uralicApi namespace has all required methods', () => {
   assert.strictEqual(typeof uralicApi.get_translation, 'function');
   assert.strictEqual(typeof uralicApi.download, 'function');
   assert.strictEqual(typeof uralicApi.is_language_installed, 'function');
+  assert.strictEqual(typeof uralicApi.clearCache, 'function');
+  assert.strictEqual(typeof uralicApi.clear_cache, 'function');
+  assert.strictEqual(typeof uralicApi.deleteLanguage, 'function');
+  assert.strictEqual(typeof uralicApi.delete_language, 'function');
 });

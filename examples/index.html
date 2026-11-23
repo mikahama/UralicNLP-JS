@@ -83,6 +83,24 @@
     <pre id="morphOutput">// Select an action above</pre>
   </div>
 
+  <!-- 3. CG3 Demo -->
+  <div class="card">
+    <h2>3. CG3 disambiguation</h2>
+    <p>
+      Uses the language's <code>disambiguator.cg3</code> grammar through
+      <code>@rueter/jscg3</code>. The grammar and analyzer are downloaded on
+      first use and cached in IndexedDB.
+    </p>
+    <div>
+      <label>Language code:</label>
+      <input type="text" id="cgLangInput" value="fin" style="width: 80px;">
+      <label style="margin-left: 15px;">Sentence:</label>
+      <input type="text" id="cgSentenceInput" value="Kissa voi nauraa." style="width: 300px;">
+      <button onclick="runCg3()">Disambiguate</button>
+    </div>
+    <pre id="cgOutput">// Click "Disambiguate" to run the CG3 grammar</pre>
+  </div>
+
   <script>
     function runTokenizer() {
       const text = document.getElementById('tokenText').value;
@@ -158,6 +176,38 @@
       try {
         const res = await uralicNLP.segment(q, lang);
         out.textContent = JSON.stringify(res, null, 2);
+      } catch (err) {
+        out.textContent = `Error: ${err.message}`;
+      }
+    }
+
+    async function runCg3() {
+      const lang = document.getElementById('cgLangInput').value.trim();
+      const sentence = document.getElementById('cgSentenceInput').value.trim();
+      const out = document.getElementById('cgOutput');
+      const words = uralicNLP.tokenizer.words(sentence);
+
+      if (!lang || !words.length) {
+        out.textContent = 'Enter a language code and a sentence.';
+        return;
+      }
+
+      out.textContent = `Loading the ${lang} CG3 grammar and analyzing: ${words.join(' ')}`;
+      try {
+        const cg = new uralicNLP.Cg3(lang);
+        const result = await cg.disambiguate(words);
+        out.textContent = JSON.stringify(
+          result.map(([form, readings]) => ({
+            form,
+            readings: readings.map((reading) => ({
+              lemma: reading.lemma,
+              tags: reading.tags,
+              weight: reading.weight,
+            })),
+          })),
+          null,
+          2
+        );
       } catch (err) {
         out.textContent = `Error: ${err.message}`;
       }

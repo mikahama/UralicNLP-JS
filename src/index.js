@@ -11,9 +11,12 @@ import {
   supported_languages,
   supportedLanguages,
   uninstall,
+  deleteLanguage,
+  delete_language,
   get_transducer,
   getTransducer,
   clearCache,
+  clear_cache,
   setDownloadServerUrl,
   getDownloadServerUrl,
   removeSymbols,
@@ -28,6 +31,8 @@ import tokenizer, {
   words,
   tokenize,
 } from './tokenizer.js';
+
+import { Cg3, Cg3Pipe } from './cg3.js';
 
 import {
   getStorage,
@@ -46,6 +51,8 @@ export {
   get_translation,
   getTranslation,
   tokenizer,
+  Cg3,
+  Cg3Pipe,
   // Tokenizer individual functions
   sentences,
   words,
@@ -57,9 +64,12 @@ export {
   supported_languages,
   supportedLanguages,
   uninstall,
+  deleteLanguage,
+  delete_language,
   get_transducer,
   getTransducer,
   clearCache,
+  clear_cache,
   setDownloadServerUrl,
   getDownloadServerUrl,
   // Utility functions
@@ -85,6 +95,8 @@ const uralicNLP = {
   get_translation,
   getTranslation,
   tokenizer,
+  Cg3,
+  Cg3Pipe,
   sentences,
   words,
   tokenize,
@@ -94,9 +106,12 @@ const uralicNLP = {
   supported_languages,
   supportedLanguages,
   uninstall,
+  deleteLanguage,
+  delete_language,
   get_transducer,
   getTransducer,
   clearCache,
+  clear_cache,
   setDownloadServerUrl,
   getDownloadServerUrl,
   removeSymbols,

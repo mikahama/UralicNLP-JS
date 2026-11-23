@@ -1,6 +1,6 @@
 {
   "name": "uralicnlp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "JavaScript implementation of UralicNLP for server (Node.js) and browser",
   "type": "module",
   "main": "./dist/uralicnlp.cjs",
@@ -40,6 +40,7 @@
   ],
   "license": "Apache-2.0",
   "dependencies": {
+    "@rueter/jscg3": "^1.0.0",
     "hfst-js": "^1.4.0"
   },
   "devDependencies": {

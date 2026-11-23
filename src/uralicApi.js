@@ -11,6 +11,7 @@ export const MODEL_TYPES = {
   'generator-desc': 'generator-gt-desc.hfstol',
   'generator-norm': 'generator-gt-norm.hfstol',
   'morpher-gt-desc.hfstol': 'morpher-gt-desc.hfstol',
+  cg3: 'disambiguator.cg3',
   'metadata.json': 'metadata.json',
   'dictionary.json': 'dictionary.json',
 };
@@ -36,12 +37,29 @@ export function setDownloadServerUrl(url) {
 }
 
 /**
- * Clears in-memory transducer caches.
+ * Clears in-memory transducer caches. When a language is provided, only that
+ * language's analyzer and generator models are evicted.
+ *
+ * @param {string | null} [language=null]
  */
-export function clearCache() {
-  analyzerCache.clear();
-  generatorCache.clear();
+export function clearCache(language = null) {
+  if (language == null) {
+    analyzerCache.clear();
+    generatorCache.clear();
+    return;
+  }
+
+  const prefix = `${language}:`;
+  for (const key of analyzerCache.keys()) {
+    if (key.startsWith(prefix)) analyzerCache.delete(key);
+  }
+  for (const key of generatorCache.keys()) {
+    if (key.startsWith(prefix)) generatorCache.delete(key);
+  }
 }
+
+/** Python-style alias for {@link clearCache}. */
+export const clear_cache = clearCache;
 
 /**
  * Removes flag diacritics / symbols (@...@) from a string.
@@ -131,6 +149,7 @@ export async function download(language, options = {}) {
     'generator-desc',
     'generator-norm',
     'morpher-gt-desc.hfstol',
+    'cg3',
     'metadata.json',
   ];
 
@@ -173,6 +192,10 @@ export async function download(language, options = {}) {
       }
     }
   }
+
+  // A cached transducer keeps its old binary even after storage has received
+  // a newer download. Evict it so the next operation loads the new model.
+  clearCache(language);
 }
 
 /**
@@ -575,13 +598,18 @@ export const supportedLanguages = supported_languages;
 export async function uninstall(language) {
   const storage = await getStorage();
   await storage.uninstall(language);
-  for (const key of Array.from(analyzerCache.keys())) {
-    if (key.startsWith(`${language}:`)) analyzerCache.delete(key);
-  }
-  for (const key of Array.from(generatorCache.keys())) {
-    if (key.startsWith(`${language}:`)) generatorCache.delete(key);
-  }
+  clearCache(language);
 }
+
+/**
+ * Explicit, user-facing name for permanently removing one language's local
+ * models. `uninstall` remains available for backwards compatibility.
+ *
+ * @param {string} language
+ * @returns {Promise<void>}
+ */
+export const deleteLanguage = uninstall;
+export const delete_language = uninstall;
 
 export const uralicApi = {
   analyze,
@@ -596,9 +624,12 @@ export const uralicApi = {
   supported_languages,
   supportedLanguages,
   uninstall,
+  deleteLanguage,
+  delete_language,
   get_transducer,
   getTransducer,
   clearCache,
+  clear_cache,
   setDownloadServerUrl,
   getDownloadServerUrl,
   removeSymbols,

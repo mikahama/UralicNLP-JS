@@ -14,6 +14,10 @@ test('dist/uralicnlp.cjs loads and executes in CommonJS', async () => {
   assert.strictEqual(typeof cjs.generate, 'function');
   assert.strictEqual(typeof cjs.segment, 'function');
   assert.strictEqual(typeof cjs.get_translation, 'function');
+  assert.strictEqual(typeof cjs.Cg3, 'function');
+  assert.strictEqual(typeof cjs.Cg3Pipe, 'function');
+  assert.strictEqual(typeof cjs.clearCache, 'function');
+  assert.strictEqual(typeof cjs.deleteLanguage, 'function');
   assert.strictEqual(typeof cjs.tokenizer, 'object');
   assert.strictEqual(typeof cjs.tokenizer.sentences, 'function');
   assert.strictEqual(typeof cjs.tokenizer.words, 'function');
@@ -84,6 +88,10 @@ test('dist/uralicnlp.min.js runs as standalone browser bundle with IndexedDB', a
   assert.strictEqual(typeof uNLP.generate, 'function');
   assert.strictEqual(typeof uNLP.segment, 'function');
   assert.strictEqual(typeof uNLP.get_translation, 'function');
+  assert.strictEqual(typeof uNLP.Cg3, 'function');
+  assert.strictEqual(typeof uNLP.Cg3Pipe, 'function');
+  assert.strictEqual(typeof uNLP.clearCache, 'function');
+  assert.strictEqual(typeof uNLP.deleteLanguage, 'function');
   assert.strictEqual(typeof uNLP.tokenizer, 'object');
   assert.strictEqual(typeof uNLP.tokenizer.sentences, 'function');
   assert.strictEqual(typeof uNLP.tokenizer.words, 'function');
@@ -96,6 +104,18 @@ test('dist/uralicnlp.min.js runs as standalone browser bundle with IndexedDB', a
   // Test storing models in IndexedDB and analyzing through browser bundle
   const storage = new uNLP.BrowserStorage('bundle_test_idb_' + Date.now());
   uNLP.setStorage(storage);
+
+  const cgGrammar = `
+DELIMITERS = "<$.>" ;
+LIST Verb = V ;
+SECTION
+SELECT Verb (0 Verb) ;
+`;
+  await storage.saveModel('test', 'cg3', new TextEncoder().encode(cgGrammar));
+  const cgResult = await new uNLP.Cg3('test').disambiguate(['run'], {
+    morphologies: [[['run+N', 1], ['run+V', 0]]],
+  });
+  assert.deepEqual(cgResult[0][1][0].tags, ['V']);
 
   const kpvAnalyserPath = '/home/mikahama/.local/lib/python3.14/site-packages/uralicNLP/models/kpv/analyser';
   const kpvGenPath = '/home/mikahama/.local/lib/python3.14/site-packages/uralicNLP/models/kpv/generator-norm';
